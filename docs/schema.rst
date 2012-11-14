@@ -13,6 +13,7 @@ Tracker tracks torrent stats in accordance to the bittorrent tracker specificati
   * info_hash - the Torrents unique id from the client
 
   Torrent::
+    .. highlight:: javascript
 
     torrent:<info_hash> // we store torrents in redis based on their info_hash since it will always be unique
     {
