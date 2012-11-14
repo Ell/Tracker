@@ -6,7 +6,7 @@
 Tracker - A BitTorrent Tracker
 ===================================
 
-Tracker aims to implement the `BitTorrent tracker specification`_ faithfully and allow people to easily implement it for use in private and public BitTorrent communities. The source code is `available on github_`.
+Tracker aims to implement the `BitTorrent tracker specification`_ faithfully and allow people to easily implement it for use in private and public BitTorrent communities. The source code is `available on github`_.
 
 .. _BitTorrent tracker specification: http://wiki.theory.org/BitTorrentSpecification#Tracker_.27scrape.27_Convention
 .. _available on github: https://github.com/Ell/Tracker
