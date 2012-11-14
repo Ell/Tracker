@@ -105,9 +105,7 @@ html_theme_options = {}
 html_theme_path = ['_themes']
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    html_theme = 'default'
-else:
+if not on_rtd:
     html_theme = 'kr'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
