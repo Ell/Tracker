@@ -1,14 +1,5 @@
 API
 ===
 
-.. autofunction:: api.add_torrent
-
-.. autofunction:: api.get_torrent
-
-.. autofunction:: api.update_torrent
-
-.. autofunction:: api.add_user
-
-.. autofunction:: api.get_user
-
-.. autofunction:: api.update_user
+.. automodule:: api
+   :members:
