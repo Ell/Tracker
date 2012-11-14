@@ -1,0 +1,4 @@
+node_modules/
+*.db
+*.conf
+rethinkdb_data/
