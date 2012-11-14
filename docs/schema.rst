@@ -9,12 +9,12 @@ Torrents
 
 Tracker tracks torrent stats in accordance to the bittorrent tracker specification. Every torrent that is tracked must store:
 
-  * Number of peers who have the entire file(s) ie. **seeders**
-  * Number of peers who are still downloading ie. **leeching**
-  * List of peer addresses with port
-  * info_hash - the Torrents unique id from the client
+* Number of peers who have the entire file(s) ie. **seeders**
+* Number of peers who are still downloading ie. **leeching**
+* List of peer addresses with port
+* info_hash - the Torrents unique id from the client
 
-  Torrent::
+Torrent::
 
     torrent::<info_hash>          # we store torrents in redis based on their info_hash since it will always be unique
     {
@@ -38,7 +38,7 @@ Users
 
 Users should be initialy added when a user is created on the front end site. The only field that is required to be populated on initial creation is the user_id field, the rest can be set to null. User creation tracker side is handled via the add user api endpoint.
 
-  User::
+User::
 
     user::<user_id>                   # users are stored a retrieved based on the `user_id` given by the front end
     {
@@ -52,8 +52,6 @@ Users should be initialy added when a user is created on the front end site. The
       },
       total_upload: <uploadamount>,   # total uploaded
       total_downloaded: <downloaded>, # total downloaded
-   }
+    }
 
 User ratio isnt calculated by the tracker since thats pretty pointless when we are already tracking total up and down.
-
-
