@@ -1,0 +1,153 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Database Layout &mdash; Tracker 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Tracker 0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="Notes" href="notes.html" />
+   
+  
+  <link media="only screen and (max-device-width: 480px)" href="_static/small_flask.css" type= "text/css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="notes.html" title="Notes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tracker 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="database-layout">
+<h1>Database Layout<a class="headerlink" href="#database-layout" title="Permalink to this headline">¶</a></h1>
+<p>Tracker uses redis to track torrents and user stats</p>
+<div class="section" id="torrents">
+<h2>Torrents<a class="headerlink" href="#torrents" title="Permalink to this headline">¶</a></h2>
+<p>Tracker tracks torrent stats in accordance to the bittorrent tracker specification. Every torrent that is tracked must store:</p>
+<ul class="simple">
+<li>Number of peers who have the entire file(s) ie. <strong>seeders</strong></li>
+<li>Number of peers who are still downloading ie. <strong>leeching</strong></li>
+<li>List of peer addresses with port</li>
+<li>info_hash - the Torrents unique id from the client</li>
+</ul>
+<p>Torrent:</p>
+<div class="highlight-python"><pre>torrent::&lt;info_hash&gt;          # we store torrents in redis based on their info_hash since it will always be unique
+{
+  info_hash: &lt;info_hash&gt;,     # the torrents unique info_hash
+  user_id: &lt;user_id&gt;,         # user_id of uploader provided by frontend site
+  peer_list: [],              # list of peers by user_id
+  seeders: {
+    user_amount: &lt;amount&gt;,    # amount of users seeding
+    users: []                 # list of user_id's currently seeding
+  }
+  leechers: {
+    user_amount: &lt;amount&gt;,    # amount of users leeching
+    users: []                 # list of user_id's currently leeching
+  }
+}</pre>
+</div>
+<p>Torrents should be added via the trackers add torrent endpoint when a torrent is uploaded to the front end site and validated. Front end site should also be responsible for geting the list of files and storing that in its own database.</p>
+</div>
+<div class="section" id="users">
+<h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Users should be initialy added when a user is created on the front end site. The only field that is required to be populated on initial creation is the user_id field, the rest can be set to null. User creation tracker side is handled via the add user api endpoint.</p>
+<p>User:</p>
+<div class="highlight-python"><pre>user::&lt;user_id&gt;                   # users are stored a retrieved based on the `user_id` given by the front end
+{
+  user_id: &lt;user_id&gt;,             # user_id given when adding new user
+  last_ip: &lt;ipaddress&gt;,           # last known ip of user (optional?)
+  last_active: &lt;datetime&gt;,        # timestamp of when user was last active
+  active_torrents {               # dict of all torrents user is active in
+    seeding: [],                  # list of torrents user is seeding
+    leeching: [],                 # list of torrents user is leeching
+    torrents: []                  # overall list of all torrents user is active in
+  },
+  total_upload: &lt;uploadamount&gt;,   # total uploaded
+  total_downloaded: &lt;downloaded&gt;, # total downloaded
+}</pre>
+</div>
+<p>User ratio isnt calculated by the tracker since thats pretty pointless when we are already tracking total up and down.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Database Layout</a><ul>
+<li><a class="reference internal" href="#torrents">Torrents</a></li>
+<li><a class="reference internal" href="#users">Users</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="notes.html" title="previous chapter">Notes</a></li>
+  </ul></li>
+</ul>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/schema.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Alan Love.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API &mdash; Tracker 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Tracker 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Notes" href="notes.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="specification.html" />
+   
+  
+  <link media="only screen and (max-device-width: 480px)" href="_static/small_flask.css" type= "text/css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="notes.html" title="Notes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="specification.html" title="&lt;no title&gt;"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tracker 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="api.add_torrent">
+<tt class="descclassname">api.</tt><tt class="descname">add_torrent</tt><big>(</big><big>)</big><a class="headerlink" href="#api.add_torrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new torrent and returns its id.</p>
+<p>POST Parameters:
+info_hash &#8211; torrents unique info_hash; this is also the torrents id
+user_id &#8211; user id of the user who uploaded the torrent</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.get_torrent">
+<tt class="descclassname">api.</tt><tt class="descname">get_torrent</tt><big>(</big><em>torrentID</em><big>)</big><a class="headerlink" href="#api.get_torrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a torrent with the id of <cite>torrentID</cite> and returns a JSON representation of it.
+See <cite>Database</cite> in documentation for example output</p>
+<p>Arguments:
+torrentID &#8211; id of the torrent to look up; this is also the torrents info_hash</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.update_torrent">
+<tt class="descclassname">api.</tt><tt class="descname">update_torrent</tt><big>(</big><em>torrentID</em><big>)</big><a class="headerlink" href="#api.update_torrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates a torrent with the id of torrentID. All parameters are optional during an update. Expects JSON</p>
+<p>PUT Parameters:
+info_hash   &#8211; the torrents info_hash (aka the torrentID)
+user_id     &#8211; user id of the uploader
+peer_list   &#8211; list of all peers currently using torrent</p>
+<dl class="docutils">
+<dt>seeders         &#8211; dictionary containing information on seeders currently seeding the torrent</dt>
+<dd>user_amount &#8211; list in seeders; number of current seeders on torrent
+users       &#8211; list of user_id&#8217;s currently seeding</dd>
+<dt>leechers        &#8211; dictionary containing information on users currently leeching torrent</dt>
+<dd>user_amount &#8211; list in leechers; current amount of leechers on torrent
+users       &#8211; list of user_id&#8217;s currently leeching</dd>
+</dl>
+<p>For JSON formating example please refer to <cite>Database</cite> documentation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.add_user">
+<tt class="descclassname">api.</tt><tt class="descname">add_user</tt><big>(</big><big>)</big><a class="headerlink" href="#api.add_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new user</p>
+<p>POST Parameters:
+user_id &#8211; user_id for user. should match with frontends user id 1:1.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.get_user">
+<tt class="descclassname">api.</tt><tt class="descname">get_user</tt><big>(</big><em>userID</em><big>)</big><a class="headerlink" href="#api.get_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets user with the user_id of <cite>userID</cite></p>
+<p>Arguments:
+userID &#8211; user_id of user</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.update_user">
+<tt class="descclassname">api.</tt><tt class="descname">update_user</tt><big>(</big><em>userID</em><big>)</big><a class="headerlink" href="#api.update_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates user with the user_id of <cite>userID</cite>. Expects JSON</p>
+<p>PUT Parametrs:
+Example parameters can be found in the <cite>Database</cite> section of the documentation</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="specification.html" title="previous chapter">&lt;no title&gt;</a></li>
+      <li>Next: <a href="notes.html" title="next chapter">Notes</a></li>
+  </ul></li>
+</ul>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/api.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2012, Alan Love.
+    </div>
+  </body>
+</html>

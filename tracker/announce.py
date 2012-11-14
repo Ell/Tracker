@@ -28,6 +28,13 @@ def announce_request(user_key):
         else:
             pass
 
+    if data.get('compact', None):
+        pass
 
 
-    return "Hey"
+    return user_key
+
+
+@announce.route('/<user_key>/scrape')
+def announce_scrape(user_key):
+    pass
