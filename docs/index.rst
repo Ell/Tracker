@@ -23,3 +23,4 @@ Contents:
    specification
    api
    notes
+   schema
