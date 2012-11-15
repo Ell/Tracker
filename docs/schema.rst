@@ -2,7 +2,7 @@
 Database Layout
 ===============
 
-Tracker uses redis to track torrents and user stats
+Tracker uses Cassandra to track torrents and user stats
 
 Torrents
 --------
