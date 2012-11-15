@@ -7,11 +7,11 @@ api = Blueprint('api', __name__, template_folder='templates')
 def get_torrent(torrentID):
 
     """
+    .. py:function get_torrent(torrentID)
+
     Returns a torrent with the id of `torrentID` and returns a JSON representation of it.
     See `Database` in documentation for example output
 
-    Arguments:
-    torrentID -- id of the torrent to look up; this is also the torrents info_hash
     """
 
     return torrentID
@@ -21,11 +21,13 @@ def get_torrent(torrentID):
 def add_torrent():
 
     """
+    .. py:function add_torrent()
+    
     Creates a new torrent and returns its id.
 
-    POST Parameters:
-    info_hash -- torrents unique info_hash; this is also the torrents id
-    user_id -- user id of the user who uploaded the torrent
+    **POST Parameters**
+    :param info_hash: torrents unique info_hash; this is also the torrents id
+    :param user_id: user id of the user who uploaded the torrent
     """
 
     return 'add_torrent'
@@ -34,20 +36,21 @@ def add_torrent():
 @api.route('/torrent/<torrentID>', methods=['PUT'])
 def update_torrent(torrentID):
     """
-    Updates a torrent with the id of torrentID. All parameters are optional during an update. Expects JSON
+    .. py:function update_torrent(torrentID)
 
-    PUT Parameters:
-    info_hash   -- the torrents info_hash (aka the torrentID)
-    user_id     -- user id of the uploader
-    peer_list   -- list of all peers currently using torrent
+    Updates a torrent with the id of torrentID. All parameters are optional during an update. Expects JSON in the PUT request
 
-    seeders         -- dictionary containing information on seeders currently seeding the torrent
-        user_amount -- list in seeders; number of current seeders on torrent
-        users       -- list of user_id's currently seeding
+    param: info_hash: the torrents info_hash (aka the torrentID)
+    param: user_id: user id of the uploader
+    param: peer_list: list of all peers currently using torrent
 
-    leechers        -- dictionary containing information on users currently leeching torrent
-        user_amount -- list in leechers; current amount of leechers on torrent
-        users       -- list of user_id's currently leeching
+    param: seeders: dictionary containing information on seeders currently seeding the torrent
+    param: user_amount: list in seeders; number of current seeders on torrent
+    param: users: list of user_id's currently seeding; in seeders
+
+    param: leechers: dictionary containing information on users currently leeching torrent
+    param: user_amount: list in leechers; current amount of leechers on torrent
+    param: users: list of user_id's currently leeching; in leechers
 
     For JSON formating example please refer to `Database` documentation
     """
@@ -58,10 +61,11 @@ def update_torrent(torrentID):
 @api.route('/user', methods=['POST'])
 def add_user():
     """
-    Creates a new user
+    .. py:function add_user()
 
-    POST Parameters:
-    user_id -- user_id for user. should match with frontends user id 1:1.
+    Creates a new user. All parameters are POST parameters
+
+    param: user_id: user_id for user. should match with frontends user id 1:1.
     """
 
     return 'add_user'
@@ -70,10 +74,11 @@ def add_user():
 @api.route('/user/<userID>', methods=['GET'])
 def get_user(userID):
     """
+    .. py:function get_user(userID)
+
     Gets user with the user_id of `userID`
 
-    Arguments:
-    userID -- user_id of user
+    param: userID: user_id of user
     """
 
     return userID
@@ -82,10 +87,11 @@ def get_user(userID):
 @api.route('/user/<userID>', methods=['PUT'])
 def update_user(userID):
     """
-    Updates user with the user_id of `userID`. Expects JSON
+    .. py:function update_user(userID)
 
-    PUT Parametrs:
-    Example parameters can be found in the `Database` section of the documentation
+    Updates user with the user_id of `userID`. Expects JSON. Parameters are PUT params.
+
+    **Example parameters can be found in the `Database` section of the documentation**
     """
 
     return userID
