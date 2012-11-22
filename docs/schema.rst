@@ -2,7 +2,7 @@
 Database Layout
 ===============
 
-Tracker uses Cassandra to track torrents and user stats
+Tracker uses RethinkDB to track torrents and user stats
 
 Torrents
 --------
@@ -15,12 +15,15 @@ Tracker tracks torrent stats in accordance to the bittorrent tracker specificati
 * info_hash - the Torrents unique id from the client
 
 Torrent::
-
+    
     torrent::<info_hash>          # we store torrents in redis based on their info_hash since it will always be unique
     {
-      info_hash: <info_hash>,     # the torrents unique info_hash
-      user_id: <user_id>,         # user_id of uploader provided by frontend site
-      peer_list: [],              # list of peers by user_id
+      id: <info_hash>,     # the torrents unique info_hash
+      peer_list: {
+        <peer_id>: {
+          ip: <ip>,              # list of peers by user_id
+          port: <port>
+      }
       seeders: {
         user_amount: <amount>,    # amount of users seeding
         users: []                 # list of user_id's currently seeding
@@ -31,24 +34,26 @@ Torrent::
       }
     }
 
-Torrents should be added via the trackers add torrent endpoint when a torrent is uploaded to the front end site and validated. Front end site should also be responsible for geting the list of files and storing that in its own database.
-
 Users
 -----
 
-Users should be initialy added when a user is created on the front end site. The only field that is required to be populated on initial creation is the user_id field, the rest can be set to null. User creation tracker side is handled via the add user api endpoint.
-
 User::
 
-    user::<user_id>                   # users are stored a retrieved based on the `user_id` given by the front end
+    user::<key>                   # users are stored a retrieved based on the `user_id` given by the front end
     {
-      user_id: <user_id>,             # user_id given when adding new user
+      id: <key>,             # user_id given when adding new user
       last_ip: <ipaddress>,           # last known ip of user (optional?)
-      last_active: <datetime>,        # timestamp of when user was last active
+      last_port: <port>,
       active_torrents {               # dict of all torrents user is active in
         seeding: [],                  # list of torrents user is seeding
         leeching: [],                 # list of torrents user is leeching
-        torrents: []                  # overall list of all torrents user is active in
+        torrents: {
+          <info_hash>: {
+            uploaded: <>,
+            downloaded: <>,
+          },
+          ..
+        }                  # overall list of all torrents user is active in
       },
       total_upload: <uploadamount>,   # total uploaded
       total_downloaded: <downloaded>, # total downloaded

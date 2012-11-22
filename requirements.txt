@@ -2,3 +2,6 @@ flask
 werkzeug
 hiredis
 redis
+celery
+rethinkdb
+flask-script
