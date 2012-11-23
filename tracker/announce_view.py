@@ -215,12 +215,7 @@ def announce_request(user_key):
     ares['incomplete'] = len(torrent['leechers'])
     ares['peers'] = bencode.make_compact_peer_list(peer_list)
 
-    print 'response:'
-    print r
-    print 'bencoded:'
-    print bencode.encode(r)
-
-    return r
+    return Response(bencode.encode(ares))
 
 #@announce.route('/<user_key>/scrape')
 #def announce_scrape(user_key):
