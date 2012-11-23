@@ -196,11 +196,25 @@ def announce_request(user_key):
         user['active_torrents']['torrents'][data['info_hash']]['downloaded'] = int(data['downloaded'])
         user['total_upload'] = user['total_uploaded'] + int(data['uploaded'])
         user['total_downloaded'] = user['total_downloaded'] + int(data['downloaded'])
-        
+
     r.table('users').get('user_key').update(user).run()
 
+    # generate response
+    torrent = r.table('torrents').get(data['info_hash']).run()
+
+    peer_list = []
+    for peerid, values in torrent['peer_list'].iteritems():
+        peer = (peerid, torrent['peer_list'][peerid]['ip'], torrent['peer_list'][peerid]['port'])
+        peer_list.append(peer)
 
     resp = {}
+    resp['interval'] = 900
+    resp['min interval'] = 900
+    resp['trackerid'] = data['trackerid']
+    resp['complete'] = len(torrent['seeders']['users'])
+    resp['incomplete'] = len(torrent['leechers']['users'])
+    resp['peers'] = bencode.make_peer_list(peer_list)
+
     return bencode.encode(resp)
 
 
