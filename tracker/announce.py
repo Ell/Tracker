@@ -79,8 +79,12 @@ def announce_request(user_key):
         r.table('torrents').insert({
             'id': data['info_hash'],
             'peer_list': {},
-            'seeders': {},
-            'leechers': {}
+            'seeders': {
+                'users': []
+            },
+            'leechers': {
+                'users': []
+            }
         }).run()
 
     #check if user exists
@@ -94,45 +98,86 @@ def announce_request(user_key):
                 'seeding': [],
                 'leeching': [],
                 'torrents': {}
-            }
+            },
+            'total_upload': 0,
+            'total_downloaded': 0,
         }).run()
 
     #check if torrent has data specified; if no event just a regular check and we do nothing
     if data['event']:
         if data['event'] == 'started':
+
             # add torrent to users torrent/leeching list; add peer to torrents peer_list
             user = r.table('users').get(user_key).run()
+
+            # remove user from torrents seeding list if in it
+            if data['peer_id'] in user['active_torrents']['seeding']:
+                user['active_torrents']['seeding'].remove(data['peer_id'])
+
+            # update users leeching list
             user['active_torrents']['leeching'].append(data['info_hash'])
             user['active_torrents']['leeching'] = list(set(user['active_torrents']['leeching']))
+
             # update and save user to db
             r.table('users').get(user_key).update(user).run()
+
             # update torrents leeching list
             torrent = r.table('torrents').get(data['info_hash']).run()
             if data['peer_id'] in torrent['leechers']:
                 pass
             else:
                 torrent['leechers'].append(data['peer_id'])
+
             # update torrents peer_list
             torrent['peer_list'][data['peer_id']] = {}
             torrent['peer_list'][data['peer_id']]['ip'] = data['ip']
             torrent['peer_list'][data['peer_id']]['port'] = data['port']
+
             # save torrent data to db
             r.table('torrents').get(data['info_hash']).update(torrent).run()            
 
 
         elif data['event'] == 'stopped':
-            # remove peer from torrent
-            # remove torrent from users leeching/seeding list
-            pass
+            # remove torrent from users seeding or leeching list
+            user = r.table('users').get(user_key).run()
+
+            # check if in leeching or seeding list; pass if not found
+            if data['info_hash'] in user['active_torrents']['seeding']:
+                user['active_torrents']['seeding'].remove(data['info_hash'])
+            elif data['info_hash'] in user['active_torrents']['leeching']:
+                user['active_torrents']['leeching'].remove(data['info_hash'])
+            else:
+                pass
+
+            # update and save user
+            r.table('users').get(user_key).update(user).run()
+
+            # update torrents leeching/seeding/peer list
+            torrent = r.table('torrents').get(user_key).run()
+
+            if torrent['peer_list'].get(data['peer_id'], None):
+                del torrent['peer_list'][data['peer_id']]
+            if data['peer_id'] in torrent['seeders']['users']:
+                torrent['seeders']['users'].remove(data['peer_id'])
+            if data['peer_id'] in torrent['leechers']['users']:
+                torrent['leechers']['users'].remove(data['peer_id'])
+
+            # update and save data to db
+            r.table('torrents').get(user_key).update(torrent).run()
 
         elif data['event'] == 'completed':
-            # add peer to torrents seeding list
-            # save user
-            # make sure peer_id is still in torrents peer list
-            # add to torrents seeding list
-            # save torrent
-            pass
+            user = r.table('users').get(user_key).run()
+            if data['info_hash'] in user['active_torrents']['leeching']:
+                user['active_torrents']['leeching'].remove(data['info_hash'])
+            user['active_torrents']['seeding'].append(data['info_hash'])
+            user['active_torrents']['seeding'] = list(set(user['active_torrents']['seeding']))
+            r.table('users').get(user_key).update(user).run()
 
+            torrent = r.table('torrents').get(data['info_hash']).run()
+            if data['peer_id'] in torrent['active_torrents']['leeching']:
+                torrent['active_torrents']['leeching'].remove(data['info_hash'])
+            torrent['active_torrents']['seeding'].append(data['info_hash'])
+            r.table('torrents').get(user_key).update(user).run()
         else:
             #malformed request; error out
             return bencode.encode({'failure reason': 'invalid event specified'})
@@ -144,9 +189,14 @@ def announce_request(user_key):
         downloaded = int(data['downloaded']) - user['active_torrents']['torrents'].get(data['info_hash'], 0)
         user['active_torrents']['torrents'][data['info_hash']]['uploaded'] = user['active_torrents']['torrents'][data['info_hash']]['uploaded'] + uploaded
         user['active_torrents']['torrents'][data['info_hash']]['downloaded'] = user['active_torrents']['torrents'][data['info_hash']]['downloaded'] + downloaded
+        user['total_upload'] = user['total_upload'] + uploaded
+        user['total_downloaded'] = user['total_downloaded'] + downloaded
     else:
         user['active_torrents']['torrents'][data['info_hash']]['uploaded'] = int(data['uploaded'])
         user['active_torrents']['torrents'][data['info_hash']]['downloaded'] = int(data['downloaded'])
+        user['total_upload'] = user['total_uploaded'] + int(data['uploaded'])
+        user['total_downloaded'] = user['total_downloaded'] + int(data['downloaded'])
+        
     r.table('users').get('user_key').update(user).run()
 
 

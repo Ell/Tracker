@@ -25,11 +25,9 @@ Torrent::
           port: <port>
       }
       seeders: {
-        user_amount: <amount>,    # amount of users seeding
         users: []                 # list of user_id's currently seeding
       }
       leechers: {
-        user_amount: <amount>,    # amount of users leeching
         users: []                 # list of user_id's currently leeching
       }
     }
