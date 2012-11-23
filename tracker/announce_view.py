@@ -207,24 +207,21 @@ def announce_request(user_key):
         peer = (peerid, torrent['peer_list'][peerid]['ip'], torrent['peer_list'][peerid]['port'])
         peer_list.append(peer)
 
-    resp = {}
-    resp['interval'] = 900
-    resp['min interval'] = 900
-    resp['trackerid'] = data['trackerid']
-    resp['complete'] = len(torrent['seeders'])
-    resp['incomplete'] = len(torrent['leechers'])
-    resp['peers'] = bencode.make_compact_peer_list(peer_list)
+    ares = {}
+    ares['interval'] = 900
+    ares['min interval'] = 900
+    ares['trackerid'] = data['trackerid']
+    ares['complete'] = len(torrent['seeders'])
+    ares['incomplete'] = len(torrent['leechers'])
+    ares['peers'] = bencode.make_compact_peer_list(peer_list)
 
     print 'response:'
-    print resp
+    print r
     print 'bencoded:'
-    print bencode.encode(resp)
+    print bencode.encode(r)
 
-    #conn.close()
+    return r
 
-    return Response(bencode.encode(resp), 200)
-
-
-@announce.route('/<user_key>/scrape')
-def announce_scrape(user_key):
-    pass
+#@announce.route('/<user_key>/scrape')
+#def announce_scrape(user_key):
+#    pass

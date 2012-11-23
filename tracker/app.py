@@ -1,5 +1,5 @@
 from flask import Flask
-from announce import announce
+from announce_view import announce
 
 
 def create_app(config):
