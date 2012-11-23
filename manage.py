@@ -1,8 +1,9 @@
 from flask.ext.script import Manager
-from tracker.app import app
+from tracker.app import create_app
 import rethinkdb as r
 
 
+app = create_app('config.py')
 manager = Manager(app)
 
 @manager.command

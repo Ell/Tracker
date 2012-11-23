@@ -24,11 +24,8 @@ Torrent::
           ip: <ip>,              # list of peers by user_id
           port: <port>
       }
-      seeders: {
-        users: []                 # list of user_id's currently seeding
-      }
-      leechers: {
-        users: []                 # list of user_id's currently leeching
+      seeders: []
+      leechers: []
       }
     }
 
@@ -42,17 +39,16 @@ User::
       id: <key>,             # user_id given when adding new user
       last_ip: <ipaddress>,           # last known ip of user (optional?)
       last_port: <port>,
-      active_torrents {               # dict of all torrents user is active in
-        seeding: [],                  # list of torrents user is seeding
-        leeching: [],                 # list of torrents user is leeching
-        torrents: {
-          <info_hash>: {
-            uploaded: <>,
-            downloaded: <>,
-          },
-          ..
-        }                  # overall list of all torrents user is active in
-      },
+      seeding: [],                  # list of torrents user is seeding
+      leeching: [],                 # list of torrents user is leeching
+      torrents: {
+        <info_hash>: {
+          uploaded: <>,
+          downloaded: <>,
+        },
+        ..
+      }                  # overall list of all torrents user is active in
+    },
       total_upload: <uploadamount>,   # total uploaded
       total_downloaded: <downloaded>, # total downloaded
     }
