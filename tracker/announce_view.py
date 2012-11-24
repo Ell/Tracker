@@ -104,7 +104,7 @@ def announce_request(user_key):
 
     # so I guess torrent clients are mostly shit and dont send a 'completed' event half the time
     # check if nothing left to download; if nothing left i guess theyre seeding? -- elgruntox
-    if data['left'] == 0:
+    if data['left'] == '0':
         user = r.table('users').get(user_key).run()
         if data['info_hash'] in user['leeching']:
             user['leeching'].remove(data['info_hash'])
@@ -117,7 +117,7 @@ def announce_request(user_key):
             torrent['leechers'].remove(data['peer_id'])
         torrent['seeders'].append(data['info_hash'])
         torrent['completed'] = torrent['completed'] + 1
-        torrent['seeders'] = list(set(torrent['seeding']))
+        torrent['seeders'] = list(set(torrent['seeders']))
 
         r.table('torrents').get(data['info_hash']).replace(torrent).run()
 
@@ -257,19 +257,50 @@ def announce_scrape(user_key):
     if infohashes:
         for infohash in infohashes:
             torrent = r.table('torrents').get(infohash).run()
+
+            try:
+                complete = len(torrent['seeders'])
+            except TypeError:
+                complete = 0
+
+            try:
+                incomplete = len(torrent['leechers'])
+            except TypeError:
+                incomplete = 0
+
+            try:
+                downloaded = torrent['completed']
+            except TypeError:
+                downloaded = 0
+
             t = {
-                'complete': len(torrent['seeders']),
-                'downloaded': torrent['completed'],
-                'incomplete': len(torrent['leechers']),
+                'complete': complete,
+                'downloaded': downloaded,
+                'incomplete': incomplete,
             }
             torrents['files'][infohash.encode('utf-8')] = t
     else:
         allTorrents = r.table('torrents').run()
         for t in allTorrents:
+            try:
+                complete = len(t['seeders'])
+            except TypeError:
+                complete = 0
+
+            try:
+                incomplete = len(t['leechers'])
+            except TypeError:
+                incomplete = 0
+
+            try:
+                downloaded = t['completed']
+            except TypeError:
+                downloaded = 0
+
             torrents['files'][t['id'].encode('utf-8')] = {
-                'complete': len(t['seeders']),
-                'downloaded': t['completed'],
-                'incomplete': len(t['leechers'])
+                'complete': complete,
+                'downloaded': downloaded,
+                'incomplete': incomplete
             }
 
     return Response(bencode.encode(torrents))
