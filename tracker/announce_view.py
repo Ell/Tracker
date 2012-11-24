@@ -16,8 +16,9 @@ def before_request():
     g.conn = conn
 
 @announce.after_request
-def after_request(exception):
+def after_request(response):
     g.conn.close()
+    return response
 
 
 @announce.route('/<user_key>/announce')
@@ -73,7 +74,7 @@ def announce_request(user_key):
         if data['compact'] == '0':
             return bencode.encode({'failure reason': 'This tracker only supports compact responses'})
 
-    data['info_hash'] = hashlib.sha1(data['info_hash'].encode('utf-8')).hexdigest()
+    #data['info_hash'] = hashlib.sha1(data['info_hash'].encode('utf-8')).hexdigest()
 
     #check if torrent exists
     if not r.table('torrents').get(data['info_hash']).run():
@@ -83,7 +84,8 @@ def announce_request(user_key):
             'id': data['info_hash'],
             'peer_list': {},
             'seeders': [],
-            'leechers': []
+            'leechers': [],
+            'completed': 0
         }).run()
 
     #check if user exists
@@ -100,6 +102,25 @@ def announce_request(user_key):
             'total_downloaded': 0,
         }).run()
 
+    # so I guess torrent clients are mostly shit and dont send a 'completed' event half the time
+    # check if nothing left to download; if nothing left i guess theyre seeding? -- elgruntox
+    if data['left'] == 0:
+        user = r.table('users').get(user_key).run()
+        if data['info_hash'] in user['leeching']:
+            user['leeching'].remove(data['info_hash'])
+        user['seeding'].append(data['info_hash'])
+        user['seeding'] = list(set(user['seeding']))
+        r.table('users').get(user_key).replace(user).run()
+
+        torrent = r.table('torrents').get(data['info_hash']).run()
+        if data['peer_id'] in torrent['leechers']:
+            torrent['leechers'].remove(data['peer_id'])
+        torrent['seeders'].append(data['info_hash'])
+        torrent['completed'] = torrent['completed'] + 1
+        torrent['seeders'] = list(set(torrent['seeding']))
+
+        r.table('torrents').get(data['info_hash']).replace(torrent).run()
+
     #check if torrent has data specified; if no event just a regular check and we do nothing
     if data['event']:
         if data['event'] == 'started':
@@ -114,6 +135,12 @@ def announce_request(user_key):
             # update users leeching list
             user['leeching'].append(data['info_hash'])
             user['leeching'] = list(set(user['leeching']))
+
+            # update torrent dict
+            user['torrents'][data['info_hash']] = {
+                'uploaded': 0,
+                'downloaded': 0
+            }
 
             # update and save user to db
             r.table('users').get(user_key).replace(user).run()
@@ -150,33 +177,35 @@ def announce_request(user_key):
             r.table('users').get(user_key).replace(user).run()
 
             # update torrents leeching/seeding/peer list
-            torrent = r.table('torrents').get(user_key).run()
+            torrent = r.table('torrents').get(data['info_hash']).run()
 
             if torrent['peer_list'].get(data['peer_id'], None):
                 del torrent['peer_list'][data['peer_id']]
-            if data['peer_id'] in torrent['seeders']['users']:
-                torrent['seeders']['users'].remove(data['peer_id'])
-            if data['peer_id'] in torrent['leechers']['users']:
-                torrent['leechers']['users'].remove(data['peer_id'])
+            if data['peer_id'] in torrent['seeders']:
+                torrent['seeders'].remove(data['peer_id'])
+            if data['peer_id'] in torrent['leechers']:
+                torrent['leechers'].remove(data['peer_id'])
 
             # update and save data to db
-            r.table('torrents').get(user_key).replace(torrent).run()
+            r.table('torrents').get(data['info_hash']).replace(torrent).run()
 
         elif data['event'] == 'completed':
             user = r.table('users').get(user_key).run()
             if data['info_hash'] in user['leeching']:
-                user['leeching'].remove(data['info_hash'])
+                user['leeching'].remove(data['peer_id'])
             user['seeding'].append(data['info_hash'])
             user['seeding'] = list(set(user['seeding']))
 
             r.table('users').get(user_key).replace(user).run()
 
             torrent = r.table('torrents').get(data['info_hash']).run()
-            if data['peer_id'] in torrent['leeching']:
-                torrent['leeching'].remove(data['info_hash'])
-            torrent['seeding'].append(data['info_hash'])
+            if data['peer_id'] in torrent['leechers']:
+                torrent['leechers'].remove(data['peer_id'])
+            torrent['seeders'].append(data['info_hash'])
+            torrent['completed'] = torrent['completed'] + 1
+            torrent['seeders'] = list(set(torrent['seeders']))
 
-            r.table('torrents').get(user_key).replace(torrent).run()
+            r.table('torrents').get(data['info_hash']).replace(torrent).run()
         else:
             #malformed request; error out
             return bencode.encode({'failure reason': 'invalid event specified'})
@@ -184,8 +213,8 @@ def announce_request(user_key):
     # update users upload and download stats
     user = r.table('users').get(user_key).run()
     if user['torrents'].get(data['info_hash'], None):
-        uploaded = int(data['uploaded']) - user['torrents'].get(data['info_hash'], 0)
-        downloaded = int(data['downloaded']) - user['torrents'].get(data['info_hash'], 0)
+        uploaded = int(data['uploaded']) - user['torrents'][data['info_hash']].get('uploaded', 0)
+        downloaded = int(data['downloaded']) - user['torrents'][data['info_hash']].get('downloaded', 0)
         user['torrents'][data['info_hash']]['uploaded'] = user['torrents'][data['info_hash']]['uploaded'] + uploaded
         user['torrents'][data['info_hash']]['downloaded'] = user['torrents'][data['info_hash']]['downloaded'] + downloaded
         user['total_upload'] = user['total_upload'] + uploaded
@@ -208,8 +237,8 @@ def announce_request(user_key):
         peer_list.append(peer)
 
     ares = {}
-    ares['interval'] = 900
-    ares['min interval'] = 900
+    ares['interval'] = 30
+    ares['min interval'] = 30
     ares['trackerid'] = data['trackerid']
     ares['complete'] = len(torrent['seeders'])
     ares['incomplete'] = len(torrent['leechers'])
@@ -217,6 +246,31 @@ def announce_request(user_key):
 
     return Response(bencode.encode(ares))
 
-#@announce.route('/<user_key>/scrape')
-#def announce_scrape(user_key):
-#    pass
+@announce.route('/<user_key>/scrape')
+def announce_scrape(user_key):
+    infohashes = request.args.getlist('info_hash')
+
+    torrents = {
+        'files': {}
+    }
+
+    if infohashes:
+        for infohash in infohashes:
+            torrent = r.table('torrents').get(infohash).run()
+            t = {
+                'complete': len(torrent['seeders']),
+                'downloaded': torrent['completed'],
+                'incomplete': len(torrent['leechers']),
+            }
+            torrents['files'][infohash.encode('utf-8')] = t
+    else:
+        allTorrents = r.table('torrents').run()
+        for t in allTorrents:
+            torrents['files'][t['id'].encode('utf-8')] = {
+                'complete': len(t['seeders']),
+                'downloaded': t['completed'],
+                'incomplete': len(t['leechers'])
+            }
+
+    return Response(bencode.encode(torrents))
+

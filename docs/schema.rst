@@ -26,6 +26,7 @@ Torrent::
       }
       seeders: []
       leechers: []
+      downloaded: <int> # count of people who sent completed event
       }
     }
 
