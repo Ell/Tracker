@@ -115,7 +115,7 @@ def announce_request(user_key):
         torrent = r.table('torrents').get(data['info_hash']).run()
         if data['peer_id'] in torrent['leechers']:
             torrent['leechers'].remove(data['peer_id'])
-        torrent['seeders'].append(data['info_hash'])
+        torrent['seeders'].append(data['peer_id'])
         torrent['completed'] = torrent['completed'] + 1
         torrent['seeders'] = list(set(torrent['seeders']))
 
@@ -201,7 +201,7 @@ def announce_request(user_key):
             torrent = r.table('torrents').get(data['info_hash']).run()
             if data['peer_id'] in torrent['leechers']:
                 torrent['leechers'].remove(data['peer_id'])
-            torrent['seeders'].append(data['info_hash'])
+            torrent['seeders'].append(data['peer_id'])
             torrent['completed'] = torrent['completed'] + 1
             torrent['seeders'] = list(set(torrent['seeders']))
 
